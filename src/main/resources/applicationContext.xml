@@ -3,13 +3,16 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
        xsi:schemaLocation="
            http://www.springframework.org/schema/beans
            https://www.springframework.org/schema/beans/spring-beans.xsd
            http://www.springframework.org/schema/context
            https://www.springframework.org/schema/context/spring-context.xsd
            http://www.springframework.org/schema/tx
-           https://www.springframework.org/schema/tx/spring-tx.xsd">
+           https://www.springframework.org/schema/tx/spring-tx.xsd
+           http://www.springframework.org/schema/data/jpa
+           https://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 
     <!-- 🔍 Scan des composants annotés -->
     <context:component-scan base-package="com.tricol" />
@@ -17,30 +20,38 @@
     <!-- 💾 DataSource -->
     <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">
         <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://localhost:3306/tricol_db?useSSL=false&amp;serverTimezone=UTC"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/tricol_db001?useSSL=false&amp;serverTimezone=UTC"/>
         <property name="username" value="root"/>
-        <property name="password" value="12345chadli"/>
+        <property name="password" value="1234chadli"/>
     </bean>
 
-    <!-- ⚙️ SessionFactory Hibernate -->
-    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+    <!-- ⚙️ JPA EntityManagerFactory (Hibernate as JPA provider) -->
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="dataSource" ref="dataSource"/>
         <property name="packagesToScan" value="com.tricol.entity"/>
-        <property name="hibernateProperties">
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+                <property name="showSql" value="true"/>
+                <property name="generateDdl" value="true"/>
+                <property name="databasePlatform" value="org.hibernate.dialect.MySQLDialect"/>
+            </bean>
+        </property>
+        <property name="jpaProperties">
             <props>
-                <prop key="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</prop>
-                <prop key="hibernate.hbm2ddl.auto">update</prop>
-                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.hbm2ddl.auto">create</prop>
                 <prop key="hibernate.format_sql">true</prop>
             </props>
         </property>
     </bean>
 
-    <!-- 🔁 Gestionnaire de transactions -->
-    <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
-        <property name="sessionFactory" ref="sessionFactory"/>
+    <!-- 🔁 Gestionnaire de transactions (JPA) -->
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
     </bean>
 
     <!-- ⚡ Activation des annotations @Transactional -->
     <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <!-- 📦 Activer les repositories Spring Data JPA -->
+    <jpa:repositories base-package="com.tricol.repository" />
 </beans>

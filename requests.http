@@ -1,0 +1,68 @@
+### IntelliJ HTTP Client collection for Tricol API
+### How to use:
+# - Open this file in IntelliJ IDEA/PhpStorm/WebStorm
+# - Click the green run icon on each request
+# - The POST request captures the created id into {{fournId}} for subsequent calls
+
+@host = localhost:8080
+@contextPath = tricol_war
+@baseUrl = http://{{host}}/{{contextPath}}
+
+### List all fournisseurs
+GET {{baseUrl}}/v1/fournisseurs
+Accept: application/json
+
+### Create a new fournisseur
+POST {{baseUrl}}/v1/fournisseurs
+Content-Type: application/json
+Accept: application/json
+
+{
+  "societe": "ACME Corp",
+  "adresse": "123 Rue Centrale",
+  "contact": "John Doe",
+  "email": "john.doe@acme.test",
+  "telephone": "+212600000000",
+  "ville": "Casablanca",
+  "ice": "ICE-123456789"
+}
+
+> {%
+// Save created id for reuse
+try {
+  const body = JSON.parse(response.body);
+  if (body && body.id) {
+    client.global.set("fournId", body.id);
+  }
+} catch (e) {
+  // ignore if response isn't JSON
+}
+%}
+
+### Get a fournisseur by id (uses id captured from the POST response)
+@fournId = {{fournId}}
+GET {{baseUrl}}/v1/fournisseurs/{{fournId}}
+Accept: application/json
+
+### Update a fournisseur by id
+PUT {{baseUrl}}/v1/fournisseurs/{{fournId}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "societe": "ACME Corp Updated",
+  "adresse": "456 Avenue Nouvelle",
+  "contact": "Jane Smith",
+  "email": "contact@acme-updated.test",
+  "telephone": "+212611111111",
+  "ville": "Rabat",
+  "ice": "ICE-123456789"
+}
+
+### Delete a fournisseur by id
+DELETE {{baseUrl}}/v1/fournisseurs/{{fournId}}
+Accept: application/json
+
+### Verify list after deletion
+GET {{baseUrl}}/v1/fournisseurs
+Accept: application/json
